@@ -107,6 +107,7 @@ class MainWindow(QMainWindow):
         self.veloinp.editingFinished.connect(self.input_velocity)
         self.anglespin.editingFinished.connect(self.input_angle)
         self.elevinp.editingFinished.connect(self.input_elevation)
+        self.elevslider.sliderReleased.connect(self.input_elevation)
         
         widget = QWidget()
         widget.setLayout(main_layout)
