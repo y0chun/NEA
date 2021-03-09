@@ -99,8 +99,10 @@ class MainWindow(QMainWindow):
         self.canvas_sm = FigureCanvas(self.figure_sm)
         
         self.animbutton = QPushButton("Start")
-        self.animbutton.pressed.connect(self.final_graph)
+        self.switchgraph = QPushButton("Finalise")
+        self.animbutton.pressed.connect(self.animate)
         self.animbutton.pressed.connect(self.display_range_time)
+        self.switchgraph.pressed.connect(self.final_graph)
 
         simdisplay_layout.addWidget(self.rangedisplay)
         simdisplay_layout.addWidget(self.timedisplay)
@@ -115,6 +117,7 @@ class MainWindow(QMainWindow):
 
         graph_layout.addLayout(slider_layout)
         graph_layout.addWidget(self.animbutton)
+        graph_layout.addWidget(self.switchgraph)
 
         input_layout.addWidget(self.velolabel_sm)
         input_layout.addWidget(self.veloinp_sm)
@@ -246,19 +249,23 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.main_widget)
 
-        self.figure_sm.canvas.mpl_connect('pick_event', onpick)
-
     def final_graph(self):
+        if CalcRange(calclist[0], calclist[1], calclist[2]) > CalcMaxHeight(calclist[0], calclist[1], calclist[2]):
+                limit = CalcRange(calclist[0], calclist[1], calclist[2])
+        else:
+            limit = CalcMaxHeight(calclist[0], calclist[1], calclist[2])
         self.figure_sm.clear()
         self.ax = self.figure_sm.add_subplot()
-        t = np.linspace(0, CalcTimeTaken(calclist[0], calclist[1], calclist[2]), 75)
+        self.ax.set_xlim([0,limit+(limit*0.1)]) 
+        self.ax.set_ylim([0,limit+(limit*0.1)])
+        t = np.linspace(0, CalcTimeTaken(calclist[0], calclist[1], calclist[2]), 50)
         line, = self.ax.plot((float(self.veloinp_sm.text()) * np.cos((np.pi/180)*float(self.anglespin_sm.text())) * t), (float(self.veloinp_sm.text()) * np.sin((np.pi/180)*float(self.anglespin_sm.text())) * t - (0.5) * g * (t)**2 + float(self.elevinp_sm.text())), 'b.', linewidth=1, pickradius=3)
         self.canvas_sm.draw() 
 
-    def onpick(event):
-        thisline = event.artist
-        xdata = thisline.get_xdata()
-        ydata = thisline.get_ydata()
+    def onpick(self,event):
+        graph_point = event.artist
+        xdata = graph_point.get_xdata()
+        ydata = graph_point.get_ydata()
         ind = event.ind
         xpoints = xdata[ind]
         ypoints = ydata[ind]
