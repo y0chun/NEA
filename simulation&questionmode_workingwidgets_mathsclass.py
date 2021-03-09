@@ -83,7 +83,50 @@ class MathsCalculations:
         roundedsx = round(sx, 2)
         roundedsy = round(sy, 2)
         return roundedsx, roundedsx
+
+class GDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        self.setWindowTitle("G Value Selection")
+
+        g_layout = QHBoxLayout()
+
+        self.gnpebutt = QRadioButton("9.8")
+        self.gnpeobutt = QRadioButton("9.81")
+
+        self.ginp = QLineEdit(self)
+        self.glabel = QLabel("Enter your g value:")
+        self.gconfirm = QPushButton("Confirm")
+
+        g_layout.addWidget(self.gnpebutt)
+        g_layout.addWidget(self.gnpeobutt)
+        g_layout.addWidget(self.glabel)
+        g_layout.addWidget(self.ginp)
+        g_layout.addWidget(self.gconfirm)
+
+        self.gnpebutt.pressed.connect(self.set_npegvalue)
+        self.gnpeobutt.pressed.connect(self.set_npeogvalue)
+        self.ginp.editingFinished.connect(self.resetgbutt)
+        self.gconfirm.pressed.connect(self.set_newgvalue)
+        self.setLayout(g_layout)
+
+    def set_newgvalue(self):
+        MathsCalculations.SetGravFieldStrength(self,float(self.ginp.text()))
+        print(MathsCalculations.GetGravFieldStrength(self))
+
+    def resetgbutt(self):
+        self.gnpebutt.setChecked(False)
+        self.gnpeobutt.setChecked(False)
     
+    def set_npegvalue(self):
+        MathsCalculations.SetGravFieldStrength(self,9.8)
+        print(MathsCalculations.GetGravFieldStrength(self))
+
+    def set_npeogvalue(self):
+        MathsCalculations.SetGravFieldStrength(self,9.81)
+        print(MathsCalculations.GetGravFieldStrength(self))
+        
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -103,6 +146,9 @@ class MainWindow(QMainWindow):
 
         self.qwindowbutton = QPushButton("Switch to Question Mode")
         self.qwindowbutton.pressed.connect(self.switch_mode)
+
+        self.gvaluebutton = QPushButton("Select G Value")
+        self.gvaluebutton.pressed.connect(self.show_gdialog)
 
         self.rangedisplay = QLabel("Final Range: ")
         self.timedisplay = QLabel("Final Time Taken: ")
@@ -137,6 +183,7 @@ class MainWindow(QMainWindow):
 
         simdisplay_layout.addWidget(self.rangedisplay)
         simdisplay_layout.addWidget(self.timedisplay)
+        simdisplay_layout.addWidget(self.gvaluebutton)
         simdisplay_layout.setAlignment(Qt.AlignRight)
 
         header_layout.addWidget(self.qwindowbutton)
@@ -231,8 +278,6 @@ class MainWindow(QMainWindow):
 
         ans_layout.addWidget(self.anslabel_qm)
         ans_layout.addWidget(self.ansinp_qm)
-        
-        #self.selectgvalue.pressed.connect(self.showgvalue)
 
         self.ansdisplay_widget.addWidget(self.correctans)
         self.ansdisplay_widget.addWidget(self.falseans)
@@ -283,6 +328,10 @@ class MainWindow(QMainWindow):
     def set_gvalue(self):
         initialg = 9.81
         MathsCalculations.SetGravFieldStrength(self,initialg)
+
+    def show_gdialog(self):
+        gdlg = GDialog()
+        gdlg.exec_()
 
     def final_graph(self):
         if MathsCalculations.CalcRange(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self)) > MathsCalculations.CalcMaxHeight(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self)):
@@ -397,35 +446,7 @@ class MainWindow(QMainWindow):
     def display_range_time(self):
         self.rangedisplay.setText(f'Final Range: {str(MathsCalculations.CalcRange(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self)))}')
         self.timedisplay.setText(f'Final Time Taken: {str(MathsCalculations.CalcTimeTaken(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self)))}')
-    
-    '''
-    def showgvalue(self):
-        gdialog = QDialog()
-        g_layout = QHBoxLayout()
-        self.nineeightcheck = QCheckBox()
-        self.nineeightlabel = QLabel("9.8")
-        self.nineeightonecheck = QCheckBox()
-        self.nineeightonelabel = QLabel("9.81")
-        self.customginput = QLineEdit(self)
-        self.customglabel = QLabel("Enter a g value:")
-        g_layout.addWidget(self.nineeightlabel)
-        g_layout.addWidget(self.nineeightcheck)
-        g_layout.addWidget(self.nineeightonelabel)
-        g_layout.addWidget(self.nineeightonecheck)
-        g_layout.addWidget(self.customglabel)
-        g_layout.addWidget(self.customginput)
-        gdialog.setWindowTitle("Change g value")
-        gdialog.setLayout(g_layout)
-        gdialog.exec_()
-    
-    def setgvalue(self):
-        if self.nineeightcheck.isChecked == True:
-            g = 9.8
-        if self.nineeightcheck.isChecked == True:
-            g = 9.81
-        if self.nineeightcheck.isChecked == True:
-            g = self.customginput.text()
-    '''
+
 
     def calculate_range(self):
         MathsCalculations.CalcRange(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self))
