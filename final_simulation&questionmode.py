@@ -110,10 +110,10 @@ class MathsCalculations:
         sy = (uy * t) + (0.5 * -(self.g) * t**2) + e
         roundedsx = round(sx, self.dp)
         roundedsy = round(sy, self.dp)
-        return roundedsx, roundedsx
+        return roundedsx, roundedsy
     
     def CalcVeloAndDirec(self,v,th,e,t):
-        anginr = (np.pi/180)*anglep
+        anginr = (np.pi/180)*self.anglep
         e = self.elev
         t = self.time
         ux = self.velo*np.cos(anginr)
@@ -196,7 +196,6 @@ class GDialog(QDialog):
     def set_npeogvalue(self):
         MathsCalculations.SetGravFieldStrength(self,9.81)
         print(MathsCalculations.GetGravFieldStrength(self))
-        
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -346,7 +345,6 @@ class MainWindow(QMainWindow):
         self.swindowbutton = QPushButton("Switch to Simulation Mode")
         self.selectgvalue.pressed.connect(self.show_gdialog)
         self.swindowbutton.pressed.connect(self.switch_mode)
-    
 
         self.selectgvalue.setFixedSize(200,20)
         self.swindowbutton.setFixedSize(200,20)
@@ -403,6 +401,15 @@ class MainWindow(QMainWindow):
         self.checkbuttIV = QPushButton("Check Initial Velocity")
         self.checkbuttAOP = QPushButton("Check Angle of Projection")
         self.checkbuttVD = QPushButton("Check Velocity and Direction")
+
+        self.is_xpos = True
+        self.is_velo = True
+
+        self.checkbuttX = QPushButton("X Position")
+        self.checkbuttY = QPushButton("Y Position")
+        self.checkbuttV = QPushButton("Velocity")
+        self.checkbuttD = QPushButton("Direction")
+
         self.multicheck_widget = QStackedWidget()
         self.multicheck_widget.setFixedSize(200,30)
 
@@ -473,6 +480,14 @@ class MainWindow(QMainWindow):
 
         ans_layout.addStretch()
         ans_layout.addWidget(self.anslabel_qm)
+        ans_layout.addWidget(self.checkbuttX)
+        ans_layout.addWidget(self.checkbuttY)
+        ans_layout.addWidget(self.checkbuttV)
+        ans_layout.addWidget(self.checkbuttD)
+        self.checkbuttX.hide()
+        self.checkbuttY.hide()
+        self.checkbuttV.hide()
+        self.checkbuttD.hide()
         ans_layout.addWidget(self.ansinp_qm)
         ans_layout.addStretch()
         ans_layout.setContentsMargins(0,20,0,20)
@@ -502,6 +517,8 @@ class MainWindow(QMainWindow):
         self.veloinp_qm.editingFinished.connect(self.input_velocity)
         self.angleinp_qm.editingFinished.connect(self.input_angle)
         self.elevinp_qm.editingFinished.connect(self.input_elevation)
+        self.xposinp_qm.editingFinished.connect(self.input_xpos)
+        self.yposinp_qm.editingFinished.connect(self.input_ypos)
         self.timeinp_qm.editingFinished.connect(self.input_time)
         self.dpinp_qm.editingFinished.connect(self.input_decimalpoint)
 
@@ -512,6 +529,11 @@ class MainWindow(QMainWindow):
         self.checkbuttVD.pressed.connect(self.check_veloanddirec)
         self.checkbuttIV.pressed.connect(self.check_initialvelocity)
         self.checkbuttAOP.pressed.connect(self.check_angleofprojection)
+
+        self.checkbuttX.pressed.connect(self.xpos_selection)
+        self.checkbuttY.pressed.connect(self.ypos_selection)
+        self.checkbuttV.pressed.connect(self.v_selection)
+        self.checkbuttD.pressed.connect(self.d_selection)
 
         interface_layout.addStretch()
         interface_layout.addWidget(self.selectgvalue)
@@ -673,10 +695,22 @@ class MainWindow(QMainWindow):
     def input_decimalpoint(self):
         if self.is_sim_mode == True:
             MathsCalculations.SetDecimalPoint(self,int(self.dpinp_sm.text()))
-            self.dpinp_qm.setText(str(2))
+            self.dpinp_qm.setText(str(self.dpinp_sm.text()))
         else:
             MathsCalculations.SetDecimalPoint(self,int(self.dpinp_qm.text()))
-            self.dpinp_sm.setText(str(2))
+            self.dpinp_sm.setText(str(self.dpinp_qm.text()))
+
+    def xpos_selection(self):
+        self.is_xpos = True
+
+    def ypos_selection(self):
+        self.is_xpos = False
+
+    def v_selection(self): 
+        self.is_velo = True
+
+    def d_selection(self):
+        self.is_velo = False
     
     def get_elevation(self):
         elevation = str(self.elevslider.value())
@@ -724,34 +758,61 @@ class MainWindow(QMainWindow):
             self.ansdisplay_widget.show()
 
     def calculate_xypos(self):
-        MathsCalculations.CalcXYPosition(MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))
+        MathsCalculations.CalcXYPosition(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))
 
     def check_xypos(self):
-        if float(self.ansinp_qm.text()) == MathsCalculations.CalcXYPosition(MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self)):
-            self.ansdisplay_widget.setCurrentWidget(self.correctans)
-            self.ansdisplay_widget.show()
-            self.animate()
+        if self.is_xpos == True:
+            if float(self.ansinp_qm.text()) == MathsCalculations.CalcXYPosition(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[0]:
+                self.ansdisplay_widget.setCurrentWidget(self.correctans)
+                self.ansdisplay_widget.show()
+                print(MathsCalculations.CalcXYPosition(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[0])
+                self.animate()
+            else:
+                self.ansdisplay_widget.setCurrentWidget(self.falseans)
+                print(MathsCalculations.CalcXYPosition(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[0])
+                self.ansdisplay_widget.show()
         else:
-            self.ansdisplay_widget.setCurrentWidget(self.falseans)
-            self.ansdisplay_widget.show()
+            if float(self.ansinp_qm.text()) == MathsCalculations.CalcXYPosition(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[1]:
+                self.ansdisplay_widget.setCurrentWidget(self.correctans)
+                print(MathsCalculations.CalcXYPosition(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[1])
+                self.ansdisplay_widget.show()
+                self.animate()
+            else:
+                self.ansdisplay_widget.setCurrentWidget(self.falseans)
+                print(MathsCalculations.CalcXYPosition(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[1])
+                self.ansdisplay_widget.show()
+
 
     def calculate_veloanddirec(self):
-        MathsCalculations.CalcVeloAndDirec(MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))
+        MathsCalculations.CalcVeloAndDirec(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))
 
     def check_veloanddirec(self):
-        if float(self.ansinp_qm.text()) == MathsCalculations.CalcVeloAndDirec(MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self)):
-            self.ansdisplay_widget.setCurrentWidget(self.correctans)
-            self.ansdisplay_widget.show()
-            self.animate()
+        if self.is_velo == True:
+            if float(self.ansinp_qm.text()) == MathsCalculations.CalcVeloAndDirec(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[0]:
+                self.ansdisplay_widget.setCurrentWidget(self.correctans)
+                self.ansdisplay_widget.show()
+                print(MathsCalculations.CalcVeloAndDirec(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[0])
+                self.animate()
+            else:
+                self.ansdisplay_widget.setCurrentWidget(self.falseans)
+                print(MathsCalculations.CalcVeloAndDirec(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[0])
+                self.ansdisplay_widget.show()
         else:
-            self.ansdisplay_widget.setCurrentWidget(self.falseans)
-            self.ansdisplay_widget.show()
+            if float(self.ansinp_qm.text()) == MathsCalculations.CalcVeloAndDirec(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[1]:
+                self.ansdisplay_widget.setCurrentWidget(self.correctans)
+                self.ansdisplay_widget.show()
+                print(MathsCalculations.CalcVeloAndDirec(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[1])
+                self.animate()
+            else:
+                self.ansdisplay_widget.setCurrentWidget(self.falseans)
+                print(print(MathsCalculations.CalcVeloAndDirec(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self))[0]))
+                self.ansdisplay_widget.show()
 
     def calculate_initialvelocity(self):
-        MathsCalculations.CalcInitialVelocity(MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self))
+        MathsCalculations.CalcInitialVelocity(self, MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self))
 
     def check_initialvelocity(self):
-        if float(self.ansinp_qm.text()) == MathsCalculations.CalcInitialVelocity(MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self)):
+        if float(self.ansinp_qm.text()) == MathsCalculations.CalcInitialVelocity(self, MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self)):
             self.ansdisplay_widget.setCurrentWidget(self.correctans)
             self.ansdisplay_widget.show()
             self.animate()
@@ -760,10 +821,10 @@ class MainWindow(QMainWindow):
             self.ansdisplay_widget.show()
 
     def calculate_angleofproejction(self):
-        MathsCalculations.CalcAngleOfProjection(MathsCalculations.GetVelocity(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self))
+        MathsCalculations.CalcAngleOfProjection(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self))
     
     def check_angleofprojection(self):
-        if float(self.ansinp_qm.text()) == MathsCalculations.CalcAngleOfProjection(MathsCalculations.GetVelocity(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self)):
+        if float(self.ansinp_qm.text()) == MathsCalculations.CalcAngleOfProjection(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self)):
             self.ansdisplay_widget.setCurrentWidget(self.correctans)
             self.ansdisplay_widget.show()
             self.animate()
@@ -774,30 +835,58 @@ class MainWindow(QMainWindow):
     def choose_range(self):
         self.multicheck_widget.setCurrentWidget(self.checkbuttR)
         self.multicheck_widget.show()
+        self.checkbuttX.hide()
+        self.checkbuttY.hide()
+        self.checkbuttV.hide()
+        self.checkbuttD.hide()
 
     def choose_maxheight(self):
         self.multicheck_widget.setCurrentWidget(self.checkbuttH)
         self.multicheck_widget.show()
+        self.checkbuttX.hide()
+        self.checkbuttY.hide()
+        self.checkbuttV.hide()
+        self.checkbuttD.hide()
 
     def choose_timetaken(self):
         self.multicheck_widget.setCurrentWidget(self.checkbuttT)
         self.multicheck_widget.show()
+        self.checkbuttX.hide()
+        self.checkbuttY.hide()
+        self.checkbuttV.hide()
+        self.checkbuttD.hide()
 
     def choose_xypos(self):
         self.multicheck_widget.setCurrentWidget(self.checkbuttXY)
         self.multicheck_widget.show()
+        self.checkbuttX.show()
+        self.checkbuttY.show()
+        self.checkbuttV.hide()
+        self.checkbuttD.hide()
     
     def choose_initialvelocity(self):
         self.multicheck_widget.setCurrentWidget(self.checkbuttIV)
         self.multicheck_widget.show()
+        self.checkbuttX.hide()
+        self.checkbuttY.hide()
+        self.checkbuttV.hide()
+        self.checkbuttD.hide()
     
     def choose_angleofprojection(self):
         self.multicheck_widget.setCurrentWidget(self.checkbuttAOP)
         self.multicheck_widget.show()
+        self.checkbuttX.hide()
+        self.checkbuttY.hide()
+        self.checkbuttV.hide()
+        self.checkbuttD.hide()
     
     def choose_velocitydirection(self):
         self.multicheck_widget.setCurrentWidget(self.checkbuttVD)
         self.multicheck_widget.show()
+        self.checkbuttV.show()
+        self.checkbuttD.show()
+        self.checkbuttX.hide()
+        self.checkbuttY.hide()
     
 def main():
     app = QApplication(sys.argv)
