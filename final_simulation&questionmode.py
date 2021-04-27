@@ -72,7 +72,6 @@ class MathsCalculations:
         return self.dp
 
     def CalcRange(self,v,th,e):
-        print(self.g)
         anginr = (np.pi/180)*self.anglep
         a = -(self.g)/2
         b = self.velo*np.sin(anginr)
@@ -183,7 +182,6 @@ class GDialog(QDialog):
 
     def set_newgvalue(self):
         MathsCalculations.SetGravFieldStrength(self,float(self.ginp.text()))
-        print(MathsCalculations.GetGravFieldStrength(self))
 
     def resetgbutt(self):
         self.gnpebutt.setChecked(False)
@@ -191,11 +189,9 @@ class GDialog(QDialog):
     
     def set_npegvalue(self):
         MathsCalculations.SetGravFieldStrength(self,9.8)
-        print(MathsCalculations.GetGravFieldStrength(self))
 
     def set_npeogvalue(self):
         MathsCalculations.SetGravFieldStrength(self,9.81)
-        print(MathsCalculations.GetGravFieldStrength(self))
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -561,7 +557,6 @@ class MainWindow(QMainWindow):
     def set_gvalue(self):
         initialg = 9.81
         MathsCalculations.SetGravFieldStrength(self,initialg)
-        print(MathsCalculations.GetGravFieldStrength(self))
 
     def show_gdialog(self):
         gdlg = GDialog()
@@ -588,8 +583,6 @@ class MainWindow(QMainWindow):
         xpoints = xdata[ind]
         ypoints = ydata[ind]
         print(round(xpoints[0],2), round(ypoints[0],2))
-
-    #self.figure_sm.canvas.mpl_connect('pick_event', onpick)
 
     def animate(self):
         if MathsCalculations.CalcRange(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self)) > MathsCalculations.CalcMaxHeight(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self)):
