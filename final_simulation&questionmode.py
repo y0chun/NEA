@@ -126,7 +126,7 @@ class MathsCalculations:
         return roundedV, roundedD
 
     def CalcInitialVelocity(self,th,e,t,x,y):
-        anginr = (np.pi/180)*anglep
+        anginr = (np.pi/180)*self.anglep
         e = self.elev
         t = self.time
         sx = self.xpos
@@ -135,6 +135,8 @@ class MathsCalculations:
             U = sx / (t*np.cos(anginr))
         if self.xpos == None:
             U = (sy - (-1/2*g*t**2)) / (t*np.sin(anginr))
+        else:
+            U = sx / (t*np.cos(anginr))
         roundedU = round(U,self.dp)
         return roundedU
 
@@ -145,11 +147,11 @@ class MathsCalculations:
         sx = self.xpos
         sy = self.ypos
         if self.ypos == None:
-            AOP = angind * np.arccos(sx / (velo * t))
+            AOP = angind * np.arccos(sx / (self.velo * t))
         if self.xpos == None:
-            AOP = angind * np.arcsin((sy - (-1/2*g*t**2)) / (velo * t))
+            AOP = angind * np.arcsin((sy - (-1/2*g*t**2)) / (self.velo * t))
         if self.ypos != None and self.xpos != None:
-            AOP = angind * np.arccos(sx / (velo * t))
+            AOP = angind * np.arccos(sx / (self.velo * t))
         roundedAOP = round(AOP,self.dp)
         return roundedAOP
 
@@ -805,6 +807,7 @@ class MainWindow(QMainWindow):
         MathsCalculations.CalcInitialVelocity(self, MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self))
 
     def check_initialvelocity(self):
+        MathsCalculations.SetVelocity(self,round(float(self.ansinp_qm.text()),0))
         if float(self.ansinp_qm.text()) == MathsCalculations.CalcInitialVelocity(self, MathsCalculations.GetAngleOfProjection(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self)):
             self.ansdisplay_widget.setCurrentWidget(self.correctans)
             self.ansdisplay_widget.show()
@@ -817,6 +820,7 @@ class MainWindow(QMainWindow):
         MathsCalculations.CalcAngleOfProjection(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self))
     
     def check_angleofprojection(self):
+        MathsCalculations.SetAngleOfProjection(self,round(float(self.ansinp_qm.text()),0))
         if float(self.ansinp_qm.text()) == MathsCalculations.CalcAngleOfProjection(self, MathsCalculations.GetVelocity(self), MathsCalculations.GetElevation(self), MathsCalculations.GetTime(self), MathsCalculations.GetXPosition(self), MathsCalculations.GetYPosition(self)):
             self.ansdisplay_widget.setCurrentWidget(self.correctans)
             self.ansdisplay_widget.show()
